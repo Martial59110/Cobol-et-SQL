@@ -33,6 +33,13 @@ OCESQL*EXEC SQL BEGIN DECLARE SECTION END-EXEC.
            05  DK-AGE-ENTRY OCCURS 100 TIMES.
        10  AGE          PIC 99.
        10  COUNTER PIC 99.
+
+        01  DK-BELGIAN-TABLE.
+       10  NOM          PIC X(20).
+       10  PRENOM PIC X(20).
+       10  EMAIL PIC X(30).
+       10  CITATION PIC X(30).
+      
          
 
 OCESQL*EXEC SQL END DECLARE SECTION END-EXEC.
@@ -50,14 +57,14 @@ OCESQL     02  FILLER PIC X(029) VALUE "SELECT MIN(age) FROM databank".
 OCESQL     02  FILLER PIC X(1) VALUE X"00".
 OCESQL*
 OCESQL 01  SQ0003.
-OCESQL     02  FILLER PIC X(091) VALUE "UPDATE databank SET country_co"
-OCESQL  &  "de = 'BE' WHERE age > 35 AND age < 40 AND country_code = '"
-OCESQL  &  "FR'".
+OCESQL     02  FILLER PIC X(067) VALUE "SELECT age, COUNT( * ) FROM da"
+OCESQL  &  "tabank GROUP BY age ORDER BY age DESC".
 OCESQL     02  FILLER PIC X(1) VALUE X"00".
 OCESQL*
 OCESQL 01  SQ0004.
-OCESQL     02  FILLER PIC X(084) VALUE "SELECT age, COUNT( * ) AS Nomb"
-OCESQL  &  "reDe FROM databank GROUP BY age ORDER BY NombreDe DESC".
+OCESQL     02  FILLER PIC X(091) VALUE "SELECT last_name, first_name, "
+OCESQL  &  "email, phrase FROM databank, phrase WHERE country = 'Belgi"
+OCESQL  &  "um'".
 OCESQL     02  FILLER PIC X(1) VALUE X"00".
 OCESQL*
 OCESQL 01  SQ0005.
@@ -67,8 +74,13 @@ OCESQL  &  "FR'".
 OCESQL     02  FILLER PIC X(1) VALUE X"00".
 OCESQL*
 OCESQL 01  SQ0006.
-OCESQL     02  FILLER PIC X(080) VALUE "UPDATE databank SET country = "
-OCESQL  &  "UPPER(country), country_code = UPPER(country_code)".
+OCESQL     02  FILLER PIC X(066) VALUE "UPDATE databank SET country = "
+OCESQL  &  "'Belgique' WHERE country-code = 'BE'".
+OCESQL     02  FILLER PIC X(1) VALUE X"00".
+OCESQL*
+OCESQL 01  SQ0007.
+OCESQL     02  FILLER PIC X(068) VALUE "UPDATE databank SET country = "
+OCESQL  &  "UPPER(country), spoken = UPPER(spoken)".
 OCESQL     02  FILLER PIC X(1) VALUE X"00".
 OCESQL*
        PROCEDURE DIVISION.
@@ -88,6 +100,9 @@ OCESQL     END-CALL.
                PERFORM 1001-ERROR-RTN-START
                    THRU 1001-ERROR-RTN-END
            END-IF.
+ 
+
+      * L'âge maximum
 
 OCESQL*EXEC SQL 
 OCESQL*    SELECT MAX(age) INTO :DK-AGE FROM databank
@@ -109,7 +124,9 @@ OCESQL     END-CALL
 OCESQL     CALL "OCESQLEndSQL"
 OCESQL     END-CALL.
 
-           DISPLAY DK-AGE.
+           DISPLAY "Age maximum : " DK-AGE.
+
+      * L'âge minimum
 
 OCESQL*EXEC SQL 
 OCESQL*    SELECT MIN(age) INTO :DK-AGE FROM databank
@@ -131,27 +148,33 @@ OCESQL     END-CALL
 OCESQL     CALL "OCESQLEndSQL"
 OCESQL     END-CALL.
 
-           DISPLAY DK-AGE. 
-          
-OCESQL*EXEC SQL
-OCESQL*UPDATE databank
-OCESQL*SET country_code = 'BE'
-OCESQL*WHERE age > 35 AND age < 40 AND country_code = 'FR'
-OCESQL*END-EXEC. 
-OCESQL     CALL "OCESQLExec" USING
-OCESQL          BY REFERENCE SQLCA
-OCESQL          BY REFERENCE SQ0003
-OCESQL     END-CALL.
+           DISPLAY  "Age minimum : "DK-AGE. 
+      
 
+      * Le nombre d’individus par âge (trié du plus vieux au plus jeune)
+
+       
 OCESQL*EXEC SQL
 OCESQL*    DECLARE CRAGE CURSOR FOR
-OCESQL*    SELECT age , COUNT(*) AS NombreDe
+OCESQL*    SELECT age , COUNT(*)
 OCESQL*    FROM databank GROUP BY 
-OCESQL*    age ORDER BY NombreDe DESC
+OCESQL*    age ORDER BY age DESC
 OCESQL*END-EXEC.
 OCESQL     CALL "OCESQLCursorDeclare" USING
 OCESQL          BY REFERENCE SQLCA
 OCESQL          BY REFERENCE "belg_CRAGE" & x"00"
+OCESQL          BY REFERENCE SQ0003
+OCESQL     END-CALL.
+
+OCESQL*EXEC SQL
+OCESQL*    DECLARE CRBELGIAN CURSOR FOR
+OCESQL*    SELECT last_name, first_name, email, phrase
+OCESQL*    FROM databank, phrase
+OCESQL*    WHERE country = 'Belgium'
+OCESQL*END-EXEC.
+OCESQL     CALL "OCESQLCursorDeclare" USING
+OCESQL          BY REFERENCE SQLCA
+OCESQL          BY REFERENCE "belg_CRBELGIAN" & x"00"
 OCESQL          BY REFERENCE SQ0004
 OCESQL     END-CALL.
 
@@ -160,27 +183,92 @@ OCESQL     CALL "OCESQLCursorOpen" USING
 OCESQL          BY REFERENCE SQLCA
 OCESQL          BY REFERENCE "belg_CRAGE" & x"00"
 OCESQL     END-CALL.
+OCESQL*EXEC SQL OPEN CRBELGIAN END-EXEC.
+OCESQL     CALL "OCESQLCursorOpen" USING
+OCESQL          BY REFERENCE SQLCA
+OCESQL          BY REFERENCE "belg_CRBELGIAN" & x"00"
+OCESQL     END-CALL.
        
-           PERFORM FETCH-CRAGE
+           PERFORM 1000-FETCH-CRAGE
            UNTIL SQLCODE NOT = 0.
       
            PERFORM VARYING WS-IDX FROM 1 BY 1 UNTIL WS-IDX = 32
-           DISPLAY "Age: ", AGE(WS-IDX), " Count: ", COUNTER(WS-IDX)
+           DISPLAY "Age: ", AGE(WS-IDX), " Quantité: ", COUNTER(WS-IDX)
            END-PERFORM.
+
+           INITIALIZE WS-IDX.
+
+         
+
 OCESQL*EXEC SQL CLOSE CRAGE END-EXEC.
 OCESQL     CALL "OCESQLCursorClose"  USING
 OCESQL          BY REFERENCE SQLCA
 OCESQL          BY REFERENCE "belg_CRAGE" & x"00"
 OCESQL     END-CALL
 OCESQL    .
+OCESQL*EXEC SQL CLOSE CRBELGIAN END-EXEC.
+OCESQL     CALL "OCESQLCursorClose"  USING
+OCESQL          BY REFERENCE SQLCA
+OCESQL          BY REFERENCE "belg_CRBELGIAN" & x"00"
+OCESQL     END-CALL
+OCESQL    .
        
            PERFORM UPDATE-TABLE.
-     
+
+       
+           
 
            STOP RUN. 
 
 
-       FETCH-CRAGE.
+       1000-FETCH-CRAGE.
+
+OCESQL*EXEC SQL
+OCESQL*FETCH CRBELGIAN INTO :DK-LAST-NAME, :DK-FIRST-NAME, 
+OCESQL*    :DK-EMAIL, :PH-PHRASE 
+OCESQL*END-EXEC.
+OCESQL     CALL "OCESQLStartSQL"
+OCESQL     END-CALL
+OCESQL     CALL "OCESQLSetResultParams" USING
+OCESQL          BY VALUE 16
+OCESQL          BY VALUE 50
+OCESQL          BY VALUE 0
+OCESQL          BY REFERENCE DK-LAST-NAME
+OCESQL     END-CALL
+OCESQL     CALL "OCESQLSetResultParams" USING
+OCESQL          BY VALUE 16
+OCESQL          BY VALUE 50
+OCESQL          BY VALUE 0
+OCESQL          BY REFERENCE DK-FIRST-NAME
+OCESQL     END-CALL
+OCESQL     CALL "OCESQLSetResultParams" USING
+OCESQL          BY VALUE 16
+OCESQL          BY VALUE 50
+OCESQL          BY VALUE 0
+OCESQL          BY REFERENCE DK-EMAIL
+OCESQL     END-CALL
+OCESQL     CALL "OCESQLSetResultParams" USING
+OCESQL          BY VALUE 16
+OCESQL          BY VALUE 50
+OCESQL          BY VALUE 0
+OCESQL          BY REFERENCE PH-PHRASE
+OCESQL     END-CALL
+OCESQL     CALL "OCESQLCursorFetchOne" USING
+OCESQL          BY REFERENCE SQLCA
+OCESQL          BY REFERENCE "belg_CRBELGIAN" & x"00"
+OCESQL     END-CALL
+OCESQL     CALL "OCESQLEndSQL"
+OCESQL     END-CALL.
+    
+           MOVE DK-LAST-NAME TO NOM
+           MOVE DK-FIRST-NAME TO PRENOM
+           MOVE DK-EMAIL TO EMAIL
+           MOVE PH-PHRASE TO CITATION
+
+           DISPLAY "Nom: ", NOM, " Prénom: ", 
+           PRENOM, 
+           " Email: ", EMAIL, "Citation: ", CITATION
+
 OCESQL*EXEC SQL
 OCESQL*
 OCESQL*FETCH CRAGE INTO :DK-AGE-ENTRY
@@ -211,8 +299,13 @@ OCESQL          BY REFERENCE "belg_CRAGE" & x"00"
 OCESQL     END-CALL
 OCESQL     CALL "OCESQLEndSQL"
 OCESQL     END-CALL.
-           
+       
+       
+
        UPDATE-TABLE.  
+       
+
+      * Met à jour le country code
 
 OCESQL*EXEC SQL
 OCESQL*UPDATE databank
@@ -223,16 +316,32 @@ OCESQL     CALL "OCESQLExec" USING
 OCESQL          BY REFERENCE SQLCA
 OCESQL          BY REFERENCE SQ0005
 OCESQL     END-CALL.
+    
+      * Fais correspondre le pays au country code
 
 OCESQL*EXEC SQL
 OCESQL*UPDATE databank
-OCESQL*SET country = UPPER(country),
-OCESQL*     country_code = UPPER(country_code)
+OCESQL*SET country = 'Belgique'
+OCESQL*WHERE country-code = 'BE' 
 OCESQL*END-EXEC.
 OCESQL     CALL "OCESQLExec" USING
 OCESQL          BY REFERENCE SQLCA
 OCESQL          BY REFERENCE SQ0006
 OCESQL     END-CALL.
+
+      * Met en majuscule le pays et la langue parlé
+
+OCESQL*EXEC SQL
+OCESQL*UPDATE databank
+OCESQL*SET country = UPPER(country),
+OCESQL*    spoken = UPPER(spoken)
+OCESQL*END-EXEC.
+OCESQL     CALL "OCESQLExec" USING
+OCESQL          BY REFERENCE SQLCA
+OCESQL          BY REFERENCE SQ0007
+OCESQL     END-CALL.
+
+      
 
        1001-ERROR-RTN-START.
            DISPLAY "*** SQL ERROR ***".

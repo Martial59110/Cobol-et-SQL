@@ -33,6 +33,13 @@
            05  DK-AGE-ENTRY OCCURS 100 TIMES.
        10  AGE          PIC 99.
        10  COUNTER PIC 99.
+
+        01  DK-BELGIAN-TABLE.
+       10  NOM          PIC X(20).
+       10  PRENOM PIC X(20).
+       10  EMAIL PIC X(30).
+       10  CITATION PIC X(30).
+      
          
 
        EXEC SQL END DECLARE SECTION END-EXEC.
@@ -55,7 +62,7 @@
            SELECT MAX(age) INTO :DK-AGE FROM databank
        END-EXEC. 
 
-           DISPLAY DK-AGE.
+           DISPLAY "Age maximum : " DK-AGE.
 
       * L'âge minimum
 
@@ -63,44 +70,78 @@
            SELECT MIN(age) INTO :DK-AGE FROM databank
        END-EXEC.
 
-           DISPLAY DK-AGE. 
+           DISPLAY  "Age minimum : "DK-AGE. 
       
 
-      * Le nombre d’individus par âge
+      * Le nombre d’individus par âge (trié du plus vieux au plus jeune)
 
        
        EXEC SQL
            DECLARE CRAGE CURSOR FOR
-           SELECT age , COUNT(*) AS NombreDe
+           SELECT age , COUNT(*)
            FROM databank GROUP BY 
-           age ORDER BY NombreDe DESC
+           age ORDER BY age DESC
+       END-EXEC.
+
+       EXEC SQL
+           DECLARE CRBELGIAN CURSOR FOR
+           SELECT last_name, first_name, email, phrase
+           FROM databank, phrase
+           WHERE country = 'Belgium'
        END-EXEC.
 
        EXEC SQL OPEN CRAGE END-EXEC.
+       EXEC SQL OPEN CRBELGIAN END-EXEC.
        
-           PERFORM FETCH-CRAGE
+           PERFORM 1000-FETCH-CRAGE
            UNTIL SQLCODE NOT = 0.
       
            PERFORM VARYING WS-IDX FROM 1 BY 1 UNTIL WS-IDX = 32
-           DISPLAY "Age: ", AGE(WS-IDX), " Count: ", COUNTER(WS-IDX)
+           DISPLAY "Age: ", AGE(WS-IDX), " Quantité: ", COUNTER(WS-IDX)
            END-PERFORM.
+
+           INITIALIZE WS-IDX.
+
+         
+
        EXEC SQL CLOSE CRAGE END-EXEC.
+       EXEC SQL CLOSE CRBELGIAN END-EXEC.
        
            PERFORM UPDATE-TABLE.
-     
+
+       
+           
 
            STOP RUN. 
 
 
-       FETCH-CRAGE.
+       1000-FETCH-CRAGE.
+
+       EXEC SQL
+       FETCH CRBELGIAN INTO :DK-LAST-NAME, :DK-FIRST-NAME, 
+           :DK-EMAIL, :PH-PHRASE 
+       END-EXEC.
+    
+           MOVE DK-LAST-NAME TO NOM
+           MOVE DK-FIRST-NAME TO PRENOM
+           MOVE DK-EMAIL TO EMAIL
+           MOVE PH-PHRASE TO CITATION
+
+           DISPLAY "Nom: ", NOM, " Prénom: ", 
+           PRENOM, 
+           " Email: ", EMAIL, "Citation: ", CITATION
+
        EXEC SQL
        
        FETCH CRAGE INTO :DK-AGE-ENTRY
 
        END-EXEC.
-           
+       
+       
+
        UPDATE-TABLE.  
        
+
       * Met à jour le country code
 
        EXEC SQL
@@ -124,6 +165,8 @@
        SET country = UPPER(country),
            spoken = UPPER(spoken)
        END-EXEC.
+
+      
 
        1001-ERROR-RTN-START.
            DISPLAY "*** SQL ERROR ***".
