@@ -1,6 +1,6 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. belg.
-
+       
 
        DATA DIVISION.
        WORKING-STORAGE SECTION.
@@ -90,32 +90,24 @@
            WHERE country = 'Belgium'
        END-EXEC.
 
+      
+
        EXEC SQL OPEN CRAGE END-EXEC.
        EXEC SQL OPEN CRBELGIAN END-EXEC.
        
-           PERFORM 1000-FETCH-CRAGE
+           PERFORM 1000-FETCH
            UNTIL SQLCODE NOT = 0.
-      
-           PERFORM VARYING WS-IDX FROM 1 BY 1 UNTIL WS-IDX = 32
-           DISPLAY "Age: ", AGE(WS-IDX), " Quantité: ", COUNTER(WS-IDX)
-           END-PERFORM.
-
-           INITIALIZE WS-IDX.
-
-         
-
+ 
        EXEC SQL CLOSE CRAGE END-EXEC.
        EXEC SQL CLOSE CRBELGIAN END-EXEC.
-       
-           PERFORM UPDATE-TABLE.
-
-       
            
+           
+           PERFORM UPDATE-TABLE.
 
            STOP RUN. 
 
 
-       1000-FETCH-CRAGE.
+       1000-FETCH.
 
        EXEC SQL
        FETCH CRBELGIAN INTO :DK-LAST-NAME, :DK-FIRST-NAME, 
@@ -136,12 +128,13 @@
        FETCH CRAGE INTO :DK-AGE-ENTRY
 
        END-EXEC.
-       
-       
+           ADD 1 TO WS-IDX
+           DISPLAY "Age: ", AGE(WS-IDX), " Quantité: ", 
+           COUNTER(WS-IDX).
 
        UPDATE-TABLE.  
        
-
+         
       * Met à jour le country code
 
        EXEC SQL
@@ -149,7 +142,8 @@
        SET country_code = 'BE'
        WHERE age > 35 AND age < 40 AND country_code = 'FR'
        END-EXEC.
-    
+       
+         
       * Fais correspondre le pays au country code
 
        EXEC SQL

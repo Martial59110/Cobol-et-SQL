@@ -1,0 +1,76 @@
+****************************************************************************************************
+               Country
+
+Population
+Luxembourg
+Male
+       8
+000
+France
+Polygender
+       9
+000
+France
+Non-binary
+       7
+000
+Luxembourg
+Female
+       8
+000
+France
+Genderfluid
+       9
+000
+Luxembourg
+Agender
+       2
+000
+France
+Male
+     225
+000
+Switzerland
+Female
+       1
+000
+France
+Genderqueer
+       8
+000
+Luxembourg
+Bigender
+       1
+000
+Belgium
+Male
+       1
+000
+Belgium
+Female
+       1
+000
+Switzerland
+Polygender
+       1
+000
+France
+Bigender
+       7
+000
+Luxembourg
+Genderqueer
+       1
+000
+France
+Female
+     201
+000
+France
+Agender
+       8
+000
+France
+Agender
+       8
+000

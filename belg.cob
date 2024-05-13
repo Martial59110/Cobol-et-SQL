@@ -1,6 +1,6 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. belg.
-
+       
 
        DATA DIVISION.
        WORKING-STORAGE SECTION.
@@ -178,6 +178,8 @@ OCESQL          BY REFERENCE "belg_CRBELGIAN" & x"00"
 OCESQL          BY REFERENCE SQ0004
 OCESQL     END-CALL.
 
+      
+
 OCESQL*EXEC SQL OPEN CRAGE END-EXEC.
 OCESQL     CALL "OCESQLCursorOpen" USING
 OCESQL          BY REFERENCE SQLCA
@@ -189,17 +191,9 @@ OCESQL          BY REFERENCE SQLCA
 OCESQL          BY REFERENCE "belg_CRBELGIAN" & x"00"
 OCESQL     END-CALL.
        
-           PERFORM 1000-FETCH-CRAGE
+           PERFORM 1000-FETCH
            UNTIL SQLCODE NOT = 0.
-      
-           PERFORM VARYING WS-IDX FROM 1 BY 1 UNTIL WS-IDX = 32
-           DISPLAY "Age: ", AGE(WS-IDX), " Quantité: ", COUNTER(WS-IDX)
-           END-PERFORM.
-
-           INITIALIZE WS-IDX.
-
-         
-
+ 
 OCESQL*EXEC SQL CLOSE CRAGE END-EXEC.
 OCESQL     CALL "OCESQLCursorClose"  USING
 OCESQL          BY REFERENCE SQLCA
@@ -212,16 +206,14 @@ OCESQL          BY REFERENCE SQLCA
 OCESQL          BY REFERENCE "belg_CRBELGIAN" & x"00"
 OCESQL     END-CALL
 OCESQL    .
-       
-           PERFORM UPDATE-TABLE.
-
-       
            
+           
+           PERFORM UPDATE-TABLE.
 
            STOP RUN. 
 
 
-       1000-FETCH-CRAGE.
+       1000-FETCH.
 
 OCESQL*EXEC SQL
 OCESQL*FETCH CRBELGIAN INTO :DK-LAST-NAME, :DK-FIRST-NAME, 
@@ -299,12 +291,13 @@ OCESQL          BY REFERENCE "belg_CRAGE" & x"00"
 OCESQL     END-CALL
 OCESQL     CALL "OCESQLEndSQL"
 OCESQL     END-CALL.
-       
-       
+           ADD 1 TO WS-IDX
+           DISPLAY "Age: ", AGE(WS-IDX), " Quantité: ", 
+           COUNTER(WS-IDX).
 
        UPDATE-TABLE.  
        
-
+         
       * Met à jour le country code
 
 OCESQL*EXEC SQL
@@ -316,7 +309,8 @@ OCESQL     CALL "OCESQLExec" USING
 OCESQL          BY REFERENCE SQLCA
 OCESQL          BY REFERENCE SQ0005
 OCESQL     END-CALL.
-    
+       
+         
       * Fais correspondre le pays au country code
 
 OCESQL*EXEC SQL

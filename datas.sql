@@ -24,6 +24,7 @@ create table databank (
 	info_mobilephone VARCHAR(50)
 );
 insert into databank (id, first_name, last_name, email, gender, age, spoken, country, country_code, info_mobilephone) values ('16093c42-22b0-4541-bf4f-dc4c6a227e8c', 'Masha', 'Scudder', 'mscudder0-at-yolasite.com', 'Female', 44, 'Norwegian', 'France', 'FR', 'Sony Ericsson S500');
+insert into databank (id, first_name, last_name, email, gender, age, spoken, country, country_code, info_mobilephone) values ('16093c42-22b0-4541-bf4f-dc4c6a227e8c', 'X012', 'Schuppa', 'parasite.com', 'Xenomorphe', 440, 'Bwark', 'Orion V', 'inderminate', 'SD');
 insert into databank (id, first_name, last_name, email, gender, age, spoken, country, country_code, info_mobilephone) values ('c3492b25-1a3b-4621-8340-3c0091718896', 'Caldwell', 'Lehr', 'clehr1-at-globo.com', 'Male', 32, 'Catalan', 'France', 'FR', 'Oppo A73');
 insert into databank (id, first_name, last_name, email, gender, age, spoken, country, country_code, info_mobilephone) values ('abf1c5a5-8249-4e55-90ff-a281ec0fc7bb', 'Arnie', 'Baudains', 'abaudains2-at-wired.com', 'Male', 40, 'Catalan', 'France', 'FR', 'HTC Touch Diamond');
 insert into databank (id, first_name, last_name, email, gender, age, spoken, country, country_code, info_mobilephone) values ('90c4551b-c979-455e-8a05-5a8c9cc7689a', 'Ruben', 'Fogden', 'rfogden3-at-ustream.tv', 'Male', 28, 'Aymara', 'France', 'FR', 'Motorola C975');
